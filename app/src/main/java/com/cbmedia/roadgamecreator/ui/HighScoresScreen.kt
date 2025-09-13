@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -30,6 +32,7 @@ import com.cbmedia.roadgamecreator.persistence.loadHighScores
 fun HighScoresScreen(onBack: () -> Unit) {
     val ctx = LocalContext.current
     var scores by remember { mutableStateOf(loadHighScores(ctx)) }
+    var showDialog by remember { mutableStateOf(false) }
 
 
     Column(modifier = Modifier.Companion.fillMaxSize().padding(16.dp)) {
@@ -55,13 +58,34 @@ fun HighScoresScreen(onBack: () -> Unit) {
 
         Spacer(Modifier.Companion.height(16.dp))
         Button(
-            onClick = {
-                clearHighScores(ctx)
-                scores = emptyList()
-            }
+            onClick = { showDialog = true }
         ) { Text("Clear High Scores") }
 
         Spacer(Modifier.Companion.height(16.dp))
         Button(onClick = onBack) { Text("Back") }
+
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            clearHighScores(ctx)
+                            scores = emptyList()
+                            showDialog = false
+                        }
+                    ) {
+                        Text("Yes")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDialog = false }) {
+                        Text("No")
+                    }
+                },
+                title = { Text("Clear High Scores") },
+                text = { Text("Are you sure you want to delete all high scores?") }
+            )
+        }
     }
 }
