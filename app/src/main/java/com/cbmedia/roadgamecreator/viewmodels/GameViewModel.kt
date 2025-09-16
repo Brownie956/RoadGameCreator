@@ -1,58 +1,98 @@
 package com.cbmedia.roadgamecreator.viewmodels
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.State
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.lifecycle.ViewModel
-import com.cbmedia.roadgamecreator.models.EXAMPLE_MINIGAMES
+import com.cbmedia.roadgamecreator.data.EXAMPLE_MINIGAMES
+import com.cbmedia.roadgamecreator.models.GameRun
+import com.cbmedia.roadgamecreator.models.Minigame
+import com.cbmedia.roadgamecreator.models.MinigameResult
 
 class GameViewModel : ViewModel() {
-    var currentMinigameId by mutableStateOf("l1-a")
-        private set
+    private val minigames: Map<String, Minigame> = EXAMPLE_MINIGAMES
 
-    var score by mutableIntStateOf(0)
-        private set
+    // --- State ---
+    private val _totalPointsScoredInMinigames = mutableIntStateOf(0)
+    val totalPointsScoredInMinigames: State<Int> = _totalPointsScoredInMinigames
 
-    // Local per-minigame temporary score if you want separate counters per minigame
-    var currentMinigameLocalScore by mutableIntStateOf(0)
-        private set
+    private val _score = mutableIntStateOf(0)
+    val score: State<Int> = _score
 
-    var minigameInProgress by mutableStateOf(true)
-        private set
+    private val _localScore = mutableIntStateOf(0)
+    val localScore: State<Int> = _localScore
 
-    val minigames = EXAMPLE_MINIGAMES
+    private val _currentMinigame = mutableStateOf(minigames.getValue("initial"))
+    val currentMinigame: State<Minigame> = _currentMinigame
 
-    fun startGame() {
-        currentMinigameId = "l1-a"
-        score = 0
-        currentMinigameLocalScore = 0
-        minigameInProgress = true
+    private val _minigameInProgress = mutableStateOf(false)
+    val minigameInProgress: State<Boolean> = _minigameInProgress
+
+    private val _elapsedTime = mutableIntStateOf(0)  // seconds
+    val elapsedTime: State<Int> = _elapsedTime
+
+    private val _gameInProgress = mutableStateOf(true)
+    val gameInProgress: State<Boolean> = _gameInProgress
+
+    private val results = mutableListOf<MinigameResult>()
+
+    // --- Game logic ---
+    fun incrementScore() {
+        _localScore.intValue += _currentMinigame.value.reward
     }
 
-    fun incrementCurrent() {
-        val mg = minigames[currentMinigameId] ?: return
-        currentMinigameLocalScore += mg.reward
+    fun incrementTime() {
+        if (_gameInProgress.value) {
+            _elapsedTime.intValue++
+        }
     }
 
-    fun finishMinigame() {
-        // accumulate the local minigame score into the global score
-        score += currentMinigameLocalScore
-        currentMinigameLocalScore = 0
-        minigameInProgress = false
+    fun stopGame() {
+        _gameInProgress.value = false
     }
 
-    fun goToMinigame(nextId: String) {
-        currentMinigameId = nextId
-        currentMinigameLocalScore = 0
-        minigameInProgress = true
+
+    fun resetGame() {
+        _score.intValue = 0
+        _elapsedTime.intValue = 0
+        _gameInProgress.value = true
+        results.clear()
+        // Reset to start minigame
+        _currentMinigame.value = minigames.getValue("initial")
     }
 
-    fun spendForEntering(minigameId: String): Boolean {
-        val mg = minigames[minigameId] ?: return false
-        return if (score >= mg.cost) {
-            score -= mg.cost
-            true
-        } else false
+    fun finishMinigame(isFinal: Boolean) {
+        results.add(
+            MinigameResult(
+                id = _currentMinigame.value.id,
+                title = _currentMinigame.value.title,
+                score = _localScore.intValue
+            )
+        )
+        _score.intValue += _localScore.intValue
+        _totalPointsScoredInMinigames.intValue += _localScore.intValue
+        _score.intValue += 2
+        _localScore.intValue = 0
+        _minigameInProgress.value = false
+
+        if (isFinal) stopGame()
+    }
+
+    fun goToMinigame(id: String) {
+        val minigame = minigames.getValue(id)
+        _currentMinigame.value = minigame
+        _score.intValue -= minigame.cost
+        _minigameInProgress.value = true
+    }
+
+    fun getMinigame(id: String): Minigame = minigames.getValue(id)
+
+    fun buildGameRun(): GameRun {
+        return GameRun(
+            finalScore = _score.intValue,
+            totalPointsScoredInMinigames = _totalPointsScoredInMinigames.intValue,
+            minigames = results.toList(),
+            totalTimeSeconds = _elapsedTime.intValue
+        )
     }
 }

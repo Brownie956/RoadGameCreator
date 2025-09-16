@@ -2,30 +2,39 @@ package com.cbmedia.roadgamecreator.persistence
 
 import android.content.Context
 import androidx.core.content.edit
+import com.cbmedia.roadgamecreator.models.GameRun
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
-private const val PREFS_NAME = "adventure_prefs"
-private const val KEY_HIGH_SCORES = "high_scores" // comma-separated
+object HighScoresHelper {
+    private const val PREFS_NAME = "high_scores"
+    private const val KEY_HIGH_SCORES = "runs"
+    private val gson = Gson()
 
+    fun saveRun(context: Context, run: GameRun) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
-fun saveHighScore(context: Context, score: Int) {
-    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    val existing = prefs.getString(KEY_HIGH_SCORES, "") ?: ""
-    val list = if (existing.isBlank()) mutableListOf<Int>() else existing.split(",").mapNotNull { it.toIntOrNull() }.toMutableList()
-    list.add(score)
-    list.sortDescending()
-// keep top 10
-    val trimmed = list.take(10)
-    prefs.edit { putString(KEY_HIGH_SCORES, trimmed.joinToString(",")) }
-}
+        // Load existing runs
+        val json = prefs.getString(KEY_HIGH_SCORES, "[]")
+        val type = object : TypeToken<MutableList<GameRun>>() {}.type
+        val runs: MutableList<GameRun> = gson.fromJson(json, type) ?: mutableListOf()
 
+        // Add new run
+        runs.add(run)
 
-fun loadHighScores(context: Context): List<Int> {
-    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    val existing = prefs.getString(KEY_HIGH_SCORES, "") ?: ""
-    return if (existing.isBlank()) emptyList() else existing.split(",").mapNotNull { it.toIntOrNull() }
-}
+        // Save back to SharedPreferences
+        prefs.edit { putString(KEY_HIGH_SCORES, gson.toJson(runs)) }
+    }
 
-fun clearHighScores(context: Context) {
-    val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-    prefs.edit { remove(KEY_HIGH_SCORES) }
+    fun loadRuns(context: Context): List<GameRun> {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        val json = prefs.getString(KEY_HIGH_SCORES, "[]")
+        val type = object : TypeToken<List<GameRun>>() {}.type
+        return gson.fromJson(json, type) ?: emptyList()
+    }
+
+    fun clearRuns(context: Context) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        prefs.edit { remove(KEY_HIGH_SCORES) }
+    }
 }

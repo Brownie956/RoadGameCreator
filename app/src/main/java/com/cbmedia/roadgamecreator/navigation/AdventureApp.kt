@@ -1,61 +1,39 @@
 package com.cbmedia.roadgamecreator.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.cbmedia.roadgamecreator.persistence.saveHighScore
+import com.cbmedia.roadgamecreator.models.GameRun
 import com.cbmedia.roadgamecreator.ui.EndScreen
 import com.cbmedia.roadgamecreator.ui.GameScreen
 import com.cbmedia.roadgamecreator.ui.HighScoresScreen
+import com.cbmedia.roadgamecreator.ui.RunDetailScreen
 import com.cbmedia.roadgamecreator.ui.StartScreen
 import com.cbmedia.roadgamecreator.viewmodels.GameViewModel
 
 @Composable
-fun AdventureApp(gameViewModel: GameViewModel = viewModel()) {
+fun AdventureApp(vm: GameViewModel) {
     val navController = rememberNavController()
+    var selectedRun by remember { mutableStateOf<GameRun?>(null) }
 
 
     NavHost(navController = navController, startDestination = "start") {
-        composable("start") {
-            StartScreen(
-                onStart = {
-                    gameViewModel.startGame()
-                    navController.navigate("game")
-                },
-                onViewHighScores = { navController.navigate("highscores") }
-            )
-        }
-
-
-        composable("game") {
-            GameScreen(
-                viewModel = gameViewModel,
-                onEndGame = { finalScore ->
-                    // when an end minigame finishes, navigate to end screen with finalScore
-                    navController.navigate("end")
-                },
-                onShowHighScores = { navController.navigate("highscores") }
-            )
-        }
-
-
-        composable("end") {
-            val ctx = LocalContext.current
-            EndScreen(
-                finalScore = gameViewModel.score,
-                onBackToStart = {
-                    navController.popBackStack("start", inclusive = false)
-                },
-                onViewHighScores = { navController.navigate("highscores") }
-            )
-        }
-
-
-        composable("highscores") {
-            HighScoresScreen(onBack = { navController.popBackStack() })
+        composable("start") { StartScreen(navController) }
+        composable("game") { GameScreen(vm, navController) }
+        composable("end") { EndScreen(vm, navController) }
+        composable("highscores") { HighScoresScreen(navController) { run ->
+            selectedRun = run
+            navController.navigate("rundetail")
+        } }
+        composable("rundetail") {
+            selectedRun?.let { run ->
+                RunDetailScreen(run, navController)
+            }
         }
     }
 }
