@@ -18,6 +18,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.cbmedia.roadgamecreator.persistence.HighScoresHelper
+import com.cbmedia.roadgamecreator.ui.components.MinigameButton
 import com.cbmedia.roadgamecreator.viewmodels.GameViewModel
 
 @Composable
@@ -67,36 +68,11 @@ fun GameScreen(vm: GameViewModel, navController: NavHostController) {
                 ) {
                     current.linkedMinigames.forEach { nextId ->
                         val next = vm.getMinigame(nextId)
-                        val isCostly = next.cost > 0
-                        Button(
+                        MinigameButton(
+                            minigame = next,
                             onClick = { vm.goToMinigame(nextId) },
                             enabled = score >= next.cost,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isCostly) Color.Yellow else MaterialTheme.colorScheme.primary,
-                                contentColor = if (isCostly) Color.Black else MaterialTheme.colorScheme.onPrimary,
-                                disabledContainerColor = Color.LightGray,
-                                disabledContentColor = Color.DarkGray
-                            ),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(5.dp)
-                            ) {
-                                Text(next.title)
-                                if (next.length == null) {
-                                    Text("Length: UNLIMITED")
-                                } else {
-                                    Text("Length: ${next.length}")
-                                }
-
-                                if (next.maxScore == null){
-                                    Text("Max score: UNLIMITED")
-                                } else {
-                                    Text("Max score: ${next.maxScore}")
-                                }
-                                Text("Cost: ${next.cost}")
-                            }
-                        }
+                        )
                     }
                 }
             }
