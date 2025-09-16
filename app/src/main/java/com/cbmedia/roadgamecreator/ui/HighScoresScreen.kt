@@ -1,5 +1,6 @@
 package com.cbmedia.roadgamecreator.ui
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,7 +40,10 @@ fun HighScoresScreen(navController: NavHostController, onRunClick: (GameRun) -> 
         if (runs.isEmpty()) {
             Text("No high scores yet.")
         } else {
-            LazyColumn(modifier = Modifier.weight(1f)) {
+            LazyColumn(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.weight(1f)
+            ) {
                 items(runs.sortedByDescending { it.finalScore }) { run ->
                     Button(onClick = { onRunClick(run) }, modifier = Modifier.fillMaxWidth()) {
                         Column {
