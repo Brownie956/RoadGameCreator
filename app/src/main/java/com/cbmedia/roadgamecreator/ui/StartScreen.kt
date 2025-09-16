@@ -12,22 +12,30 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
+import com.cbmedia.roadgamecreator.viewmodels.GameViewModel
 
 @Composable
-fun StartScreen(navController: NavHostController) {
+fun StartScreen(
+    vm: GameViewModel,
+    onStartGame: () -> Unit,
+    onClickHighScores: () -> Unit
+) {
     Column(
         modifier = Modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(5.dp, Alignment.CenterVertically),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Button(
-            onClick = { navController.navigate("game") },
+            onClick = {
+                vm.startGame()
+                onStartGame()
+            },
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Start Game")
         }
         Button(
-            onClick = { navController.navigate("highscores") },
+            onClick = onClickHighScores,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("High Scores")

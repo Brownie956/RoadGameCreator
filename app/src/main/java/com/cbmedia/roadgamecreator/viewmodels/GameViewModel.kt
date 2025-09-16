@@ -4,10 +4,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.State
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.cbmedia.roadgamecreator.data.EXAMPLE_MINIGAMES
 import com.cbmedia.roadgamecreator.models.GameRun
 import com.cbmedia.roadgamecreator.models.Minigame
 import com.cbmedia.roadgamecreator.models.MinigameResult
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 class GameViewModel : ViewModel() {
     private val minigames: Map<String, Minigame> = EXAMPLE_MINIGAMES
@@ -31,12 +34,25 @@ class GameViewModel : ViewModel() {
     private val _elapsedTime = mutableIntStateOf(0)  // seconds
     val elapsedTime: State<Int> = _elapsedTime
 
-    private val _gameInProgress = mutableStateOf(true)
+    private val _gameInProgress = mutableStateOf(false)
     val gameInProgress: State<Boolean> = _gameInProgress
 
     private val results = mutableListOf<MinigameResult>()
 
     // --- Game logic ---
+
+    init {
+        // launch timer loop inside ViewModelScope
+        viewModelScope.launch {
+            while (true) {
+                delay(1000L)
+                if (_gameInProgress.value) {
+                    _elapsedTime.intValue += 1
+                }
+            }
+        }
+    }
+
     fun incrementScore() {
         _localScore.intValue += _currentMinigame.value.reward
     }
@@ -45,6 +61,16 @@ class GameViewModel : ViewModel() {
         if (_gameInProgress.value) {
             _elapsedTime.intValue++
         }
+    }
+
+    fun startGame() {
+        _score.intValue = 0
+        _elapsedTime.intValue = 0
+        _totalPointsScoredInMinigames.intValue = 0
+        results.clear()
+
+        _currentMinigame.value = minigames.getValue("initial")
+        _gameInProgress.value = true
     }
 
     fun stopGame() {

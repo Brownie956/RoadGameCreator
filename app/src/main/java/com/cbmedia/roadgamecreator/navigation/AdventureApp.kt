@@ -23,7 +23,11 @@ fun AdventureApp(vm: GameViewModel) {
 
 
     NavHost(navController = navController, startDestination = "start") {
-        composable("start") { StartScreen(navController) }
+        composable("start") { StartScreen(
+            vm = vm,
+            onStartGame = { navController.navigate("game") },
+            onClickHighScores = { navController.navigate("highscores") }
+        ) }
         composable("game") { GameScreen(vm, navController) }
         composable("end") { EndScreen(vm, navController) }
         composable("highscores") { HighScoresScreen(navController) { run ->

@@ -4,20 +4,18 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.cbmedia.roadgamecreator.persistence.HighScoresHelper
+import com.cbmedia.roadgamecreator.ui.components.Header
 import com.cbmedia.roadgamecreator.ui.components.MinigameButton
 import com.cbmedia.roadgamecreator.viewmodels.GameViewModel
 
@@ -28,13 +26,14 @@ fun GameScreen(vm: GameViewModel, navController: NavHostController) {
     val score = vm.score.value
     val localScore = vm.localScore.value
     val minigameInProgress = vm.minigameInProgress.value
+    val elapsedSeconds by vm.elapsedTime
 
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(text = current.title, style = MaterialTheme.typography.headlineSmall)
-        Text(text = current.description)
-        Text("Score: $score")
-
-        Stopwatch(vm)
+        Header(
+            minigame = current,
+            score = score,
+            elapsedSeconds = elapsedSeconds
+        )
 
 
         if (minigameInProgress) {
