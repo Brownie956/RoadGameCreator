@@ -87,7 +87,7 @@ class GameViewModel : ViewModel() {
         _currentMinigame.value = minigames.getValue("initial")
     }
 
-    fun finishMinigame(isFinal: Boolean) {
+    fun finishMinigame() {
         results.add(
             MinigameResult(
                 id = _currentMinigame.value.id,
@@ -100,8 +100,6 @@ class GameViewModel : ViewModel() {
         _score.intValue += 2
         _localScore.intValue = 0
         _minigameInProgress.value = false
-
-        if (isFinal) stopGame()
     }
 
     fun goToMinigame(id: String) {

@@ -11,7 +11,7 @@ import com.cbmedia.roadgamecreator.models.Minigame
 
 
 @Composable
-fun Header(
+fun MinigameHeader(
     minigame: Minigame,
     score: Int,
     elapsedSeconds: Int
@@ -29,14 +29,14 @@ fun Header(
 
 @Preview(showBackground = true)
 @Composable
-fun HeaderPreview() {
+fun MinigameHeaderPreview() {
     val minigame = Minigame(
         id = "example",
         title = "Example minigame",
         description = "Example minigame description",
     )
 
-    Header(
+    MinigameHeader(
         minigame = minigame,
         score = 10,
         elapsedSeconds = 250
